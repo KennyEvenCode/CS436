@@ -11,90 +11,84 @@ PUBLIC_IP = "172.16.20.2"
 ## tcp_mapping = NATTable()
 ## and expose only set(x,y) and get(x,y) functions
 class NATTable:
+
+    # class constructor
+    # creates data structures for storing data
     def __init__(self):
         # NAT translation table
         # ============================ WORK WHERE =====================================
         # IMPLEMENT THIS
-        # {} symbol to initialize dictionary of tuples
-        self.data = {Tuple[str, int] : Tuple[str, int]}
+        # creates an empty list to store registered port num and LAN IP
+        self.data = [] 
+        # creates a list to store port num and LAN IP (initialized with 0-63)
+        self.lanList = list(range(64)) 
+        # creates a list to store port num and WAN IP (initialized with 0-63)
+        self.wanList = list(range(64)) 
 
+    # generate random number within valid port range (between 30000, 65535, all availbe if greater than 30000)
     def _random_id(self):
         return random.randint(30001, 65535)
 
+    # set function 
+    # Creates a new random port for each NEW connection 
+    # otherwise, returns saved data if source ip and port numbers are found
     def set(self, ip_src, id_src) -> Tuple[str, int]:
-        # REMEMBER: Create a new random port for each NEW connection else return saved data if source ip and id is found
-        # Set WAN side mapping PUBLIC_IP, random_id [range 30,000 - 65,535]
-        # ============================ WORK WHERE =====================================
-        new_ip_src = PUBLIC_IP
-        new_id_src = _random_id()
-        if ((ip_src, id_src) in self.data) {
-            return ( new_ip_src , self.data[(ip_src, id_src)][1] )
-        }
-        else {
-            # return unique/unused port
-            # ERROR: infinite loop if all 35,535 ports get used up
-            maxIt = 0
-            while _isUsed(new_id_src):
-                maxIt += 1
-                new_id_src = self._random_id()
-                if maxIT == 35534:
-                    raise SystemExit(1)
-            # save connection to table
-            self.data.update( { ( ip_src , id_src ) : ( new_ip_src , new_id_src ) } )
-            return ( new_ip_src , new_id_src ) 
-        }
-
-    def get(self, ip_dst, id_dst) -> Tuple[str, int]:
-        # Get LAN side mapping ip_src and id_src
-        # ============================ WORK WHERE =====================================
-        ip_src = dict((value , key) for key , value in self.data.items()).get((ip_src, id_src))[0]
-        id_src = dict((value , key) for key , value in self.data.items()).get((ip_src, id_src))[1]
-        return ip_src, id_src
-
-    def _isUsed (portNo: int) -> bool:
-        # return true false if id_src is already in use        
-        for ke , va in self.data.items():
-            # va = ( IP , port )
-            # va[1] = port
-            if va[1] == portNo :
-                return true                
-        return false
-
-            
-
         
+        # set ip equal to public ip
+        new_ip_src = PUBLIC_IP
 
+        # get new random port
+        new_id_src = self._random_id()
+        
+        # get LAN from WAN port num
+        lanPort = new_id_src % 64 
 
+        # get WAN from LAN port num 
+        wanPort = id_src % 64 
 
+        # if IP and Port numbers are already mapped 
+        if (ip_src, id_src) in self.data: 
+            # get value from the WAN List
+            wanValue = self.wanList[wanPort] 
+            # seperate tuple into individual variables/objects
+            ip_src = wanValue[0]
+            id_src = wanValue[1]
+            
+            # returns port num and WAN IP
+            return ip_src, id_src 
 
+        else: 
+            # create new connection and add info to lists
+            self.lanList[lanPort] = (ip_src, id_src)
+            self.wanList[wanPort] = (new_ip_src, new_id_src)
+            # add to table
+            self.data.append((ip_src, id_src))
+            #return new ip and port numbers
+            return new_ip_src, new_id_src
 
+    # get function 
+    # retrieves the LAN side mapping ip_src and id_src
+    def get(self, ip_dst, id_dst) -> Tuple[str, int]:
 
+        #set source ip equal to destination ip
+        ip_src = ip_dst 
+        # set source port equal to destination port
+        id_src = id_dst 
+        
+        # hash lanPort
+        lanPort = id_src % 64
+        # get value (tuple) from Lan List
+        lanValue = self.lanList[lanPort]
+        
+        # seperate tuple into individual variables/objects
+        ip_src = lanValue[0]
+        id_src = lanValue[1]
+        
+        # ISSUE: not needed
+        self.data
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+        # return the corresponding ip and port numbers
+        return ip_src, id_src
 
 
 # DO NOT MODIFY TEST FUNCTION
